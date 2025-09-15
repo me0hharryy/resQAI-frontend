@@ -1,29 +1,19 @@
-import { useState } from 'react'
-import './App.css'
-import {
-    AlertFeed,
-    DashboardMap,
-    DashboardPage,
-    Header,
-    MetricsDisplay,
-    ResourceManager,
-    Sidebar
-} from './components'
-function App() {
-  
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DashboardPage from './components/DashboardPage';
+import PublicPortalPage from './pages/PublicPortalPage';
+import 'leaflet/dist/leaflet.css';
 
+
+function App() {
   return (
-    <>
-      HHARRYY @ work
-      <AlertFeed></AlertFeed>
-      <DashboardMap></DashboardMap>
-      <DashboardPage></DashboardPage>
-      <Header></Header>
-      <MetricsDisplay></MetricsDisplay>
-      <ResourceManager></ResourceManager>
-      <Sidebar></Sidebar>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/public" element={<PublicPortalPage />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
