@@ -1,19 +1,9 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import DashboardPage from './components/DashboardPage';
-import PublicPortalPage from './pages/PublicPortalPage';
-import 'leaflet/dist/leaflet.css';
-
+import React from 'react'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/public" element={<PublicPortalPage />} />
-      </Routes>
-    </Router>
-  );
+    <div>App</div>
+  )
 }
 
-export default App;
+export default App
