@@ -1,9 +1,11 @@
-import React from 'react'
+import Dashboard from './components/Dashboard';
 
 function App() {
   return (
-    <div>App</div>
-  )
+    <div className="font-sans antialiased">
+      <Dashboard />
+    </div>
+  );
 }
 
-export default App
+export default App;
