@@ -1,9 +1,48 @@
 // src/components/ActionPanel.jsx
-import React, { useState, useEffect } from 'react';
-import { Send, AlertTriangle, ChevronsRight, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Send, AlertTriangle, ChevronsRight, RotateCcw, Shield, Zap, Siren, ChevronsDown } from 'lucide-react';
+
+// A small helper component for rendering the new AI recommendation sections
+const RecommendationSection = ({ title, items, icon, colorClass }) => (
+    <div>
+        <h6 className={`font-bold text-sm mb-1 flex items-center gap-2 ${colorClass}`}>
+            {icon}
+            {title}
+        </h6>
+        <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 pl-2">
+            {items && items.map((item, index) => <li key={index}>{item}</li>)}
+        </ul>
+    </div>
+);
+
 
 export default function ActionPanel({ selectedIncident, resources, onDispatchUnit, onRecallUnit }) {
     const [showAvailableUnits, setShowAvailableUnits] = useState(false);
+
+    // Parse the AI recommendation JSON string or use as is if already an object
+    const aiRecommendation = useMemo(() => {
+        if (!selectedIncident || !selectedIncident.aiRecommendation) {
+            return null;
+        }
+        if (typeof selectedIncident.aiRecommendation === 'object') {
+            return selectedIncident.aiRecommendation;
+        }
+        try {
+            // New addition: Clean the string by removing markdown code block fences
+            const cleanedText = selectedIncident.aiRecommendation.replace(/```json\s*|```/g, '').trim();
+            return JSON.parse(cleanedText);
+        } catch (e) {
+            console.error("Failed to parse AI recommendation:", e);
+            return {
+                situationAssessment: ["Invalid AI data received."],
+                immediateActions: [],
+                recommendedUnits: [],
+                potentialHazards: [],
+                safetyPrecautions: []
+            };
+        }
+    }, [selectedIncident]);
+
 
     useEffect(() => {
         setShowAvailableUnits(false);
@@ -44,10 +83,19 @@ export default function ActionPanel({ selectedIncident, resources, onDispatchUni
                             </div>
                         </div>
 
-                        <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
-                            <h5 className="font-bold text-gray-800 mb-1 text-sm">AI Recommendation</h5>
-                            <p className="text-sm text-gray-700">{selectedIncident.aiRecommendation}</p>
-                        </div>
+                        {/* --- UPGRADED: Display the new detailed AI Recommendation --- */}
+                        {aiRecommendation && (
+                            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 space-y-4">
+                                <h5 className="font-bold text-gray-800 text-base mb-2">AI Operational Plan</h5>
+                                
+                                <RecommendationSection title="Situation Assessment" items={aiRecommendation.situationAssessment} icon={<ChevronsDown size={16} />} colorClass="text-gray-600" />
+                                <RecommendationSection title="Immediate Actions" items={aiRecommendation.immediateActions} icon={<Zap size={16} />} colorClass="text-blue-600" />
+                                <RecommendationSection title="Recommended Units" items={aiRecommendation.recommendedUnits} icon={<Siren size={16} />} colorClass="text-green-600" />
+                                <RecommendationSection title="Potential Hazards" items={aiRecommendation.potentialHazards} icon={<AlertTriangle size={16} />} colorClass="text-red-600" />
+                                <RecommendationSection title="Safety Precautions" items={aiRecommendation.safetyPrecautions} icon={<Shield size={16} />} colorClass="text-amber-600" />
+                                
+                            </div>
+                        )}
 
                         <div>
                             <h5 className="font-bold mb-2 text-gray-800 text-sm">Assigned Units</h5>
@@ -59,11 +107,8 @@ export default function ActionPanel({ selectedIncident, resources, onDispatchUni
                                         <li key={unitId} className="flex justify-between items-center p-2 bg-gray-100 rounded-md">
                                             <span className="text-gray-800 font-semibold">{unitId}</span>
                                             <div className="flex items-center gap-2">
-                                                <div className={statusClasses}>
-                                                    {resource.status}
-                                                </div>
+                                                <div className={statusClasses}>{resource.status}</div>
                                                 <button
-                                                    // --- CORRECTED FUNCTION CALL ---
                                                     onClick={() => onRecallUnit(selectedIncident.id, resource.id)}
                                                     className="flex items-center bg-gray-200 hover:bg-gray-300 text-gray-700 p-1.5 rounded-md transition-colors"
                                                     title="Recall Unit"
@@ -77,16 +122,9 @@ export default function ActionPanel({ selectedIncident, resources, onDispatchUni
                             </ul>
                         </div>
 
-                        <div>
-                            <h5 className="font-bold mb-2 text-gray-800 text-sm">Action Log</h5>
-                            <ul className="space-y-1 text-xs font-mono text-gray-500 p-2 bg-gray-100 rounded-md max-h-40 overflow-y-auto">
-                                {selectedIncident.log.map((entry, index) => <li key={index}>{entry}</li>)}
-                            </ul>
-                        </div>
-
                         {showAvailableUnits && (
                             <div>
-                                <h5 className="font-bold mb-2 text-gray-800 text-sm">Available Units</h5>
+                                <h5 className="font-bold mb-2 text-gray-800 text-sm">Available Units for Dispatch</h5>
                                 <ul className="space-y-2 text-sm border-t border-gray-200 pt-3 max-h-40 overflow-y-auto">
                                     {availableUnitsForDispatch.length > 0 ? (
                                         availableUnitsForDispatch.map(unit => (

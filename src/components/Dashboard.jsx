@@ -6,6 +6,56 @@ import MapContainer from './MapContainer';
 import ActionPanel from './ActionPanel';
 import NewIncidentModal from './NewIncidentModal';
 import { api } from '../services/api';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// Initialize the Google AI Client with your API key
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+
+/**
+ * --- UPGRADED: Sends a highly detailed prompt to the Gemini API ---
+ * This function now requests a comprehensive, multi-point analysis for each incident.
+ * @param {object} incidentData - The details of the new incident.
+ * @returns {Promise<string>} A detailed JSON string from the AI.
+ */
+const getAIRecommendation = async (incidentData) => {
+  const { title, priority, location } = incidentData;
+  console.log("Requesting ADVANCED AI recommendation from Google Gemini for:", title);
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `
+      As an experienced incident commander, provide a detailed operational plan for the following emergency in India.
+      The output must be a single, minified JSON object. Each key's value must be an array of strings.
+
+      The JSON structure must be:
+      {
+        "situationAssessment": ["Provide a brief overview of the likely situation."],
+        "immediateActions": ["List at least 2-3 critical first steps for the first unit on scene."],
+        "recommendedUnits": ["List the specific types and number of units to dispatch."],
+        "potentialHazards": ["List at least 2-3 potential on-scene dangers."],
+        "safetyPrecautions": ["List at least 2-3 specific safety protocols for personnel."]
+      }
+
+      Do not include any other text, preamble, or markdown formatting.
+
+      Incident Title: "${title}"
+      Priority: ${priority}
+      Location: "${location}"
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    console.log("AI Response:", text);
+    return text; // This will be a detailed JSON string
+
+  } catch (error) {
+    console.error("Error fetching AI recommendation:", error);
+    // Return a detailed fallback JSON if the API call fails
+    return '{"situationAssessment": ["AI service is currently unavailable."], "immediateActions": ["Follow standard protocols."], "recommendedUnits": ["Dispatch units based on manual assessment."], "potentialHazards": ["Unknown due to service outage."], "safetyPrecautions": ["Maintain heightened situational awareness."]}';
+  }
+};
 
 export default function Dashboard() {
   const [incidents, setIncidents] = useState({});
@@ -15,6 +65,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreatingIncident, setIsCreatingIncident] = useState(false);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -40,8 +91,23 @@ export default function Dashboard() {
   }, [fetchAllData]);
 
   const handleCreateIncident = async (incidentData) => {
-    await api.createIncident(incidentData);
-    await fetchAllData();
+    setIsCreatingIncident(true);
+    try {
+      const recommendation = await getAIRecommendation(incidentData);
+
+      const newIncidentPayload = {
+        ...incidentData,
+        aiRecommendation: recommendation, // Store the detailed JSON string
+      };
+
+      await api.createIncident(newIncidentPayload);
+      await fetchAllData();
+    } catch (err) {
+      console.error("Failed to create incident:", err);
+    } finally {
+      setIsModalOpen(false);
+      setIsCreatingIncident(false);
+    }
   };
 
   const handleDispatchUnit = async (incidentId, resourceId) => {
@@ -59,7 +125,11 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 text-gray-800">
-      {isModalOpen && <NewIncidentModal onClose={() => setIsModalOpen(false)} onCreateIncident={handleCreateIncident} />}
+      {isModalOpen && <NewIncidentModal
+        onClose={() => setIsModalOpen(false)}
+        onCreateIncident={handleCreateIncident}
+        isCreating={isCreatingIncident}
+      />}
       <Header
         resources={resources}
         incidents={incidents}
@@ -70,8 +140,6 @@ export default function Dashboard() {
         <div className="rounded-lg shadow-md overflow-hidden">
           <MapContainer
             incidents={incidents}
-            // --- FIX ---
-            // Pass the resources array to the map
             resources={resources}
             selectedIncidentId={selectedIncidentId}
             onSelectIncident={setSelectedIncidentId}
