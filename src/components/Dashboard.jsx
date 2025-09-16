@@ -135,7 +135,7 @@ export default function Dashboard() {
         incidents={incidents}
         onNewIncidentClick={() => setIsModalOpen(true)}
       />
-      <main className="flex-grow grid grid-cols-1 lg:grid-cols-[350px_1fr_400px] gap-4 p-4 overflow-hidden">
+      <main className="flex-grow grid grid-cols-1 lg:grid-cols-[350px_1fr_400px] gap-4 p-4">
         <EventFeed events={events} onEventSelect={setSelectedIncidentId} />
         <div className="rounded-lg shadow-md overflow-hidden">
           <MapContainer

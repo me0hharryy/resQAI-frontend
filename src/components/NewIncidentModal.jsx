@@ -40,8 +40,8 @@ export default function NewIncidentModal({ onClose, onCreateIncident }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-[1001] flex justify-center items-center">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl text-black shadow-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-[1001] flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-sm md:max-w-2xl text-black shadow-2xl">
                 <h2 className="text-2xl font-bold mb-4">Create New Incident</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">

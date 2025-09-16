@@ -16,17 +16,15 @@ export default function Header({ resources, incidents, onNewIncidentClick }) {
   const activeIncidentCount = Object.keys(incidents).length;
 
   return (
-    <header className="flex-shrink-0 flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 z-20 relative">
-      <div className="flex items-center gap-4">
-        <img src={logo} className='h-35 w-auto' alt="logo" />
-        <div className="font-mono text-gray-500">
-        {time.toLocaleTimeString('en-GB')} IST
-      </div>
+    <header className="flex-shrink-0 flex flex-wrap items-center justify-between h-auto sm:h-16 px-4 sm:px-6 py-2 sm:py-0 bg-white border-b border-gray-200 z-20 relative gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <img src={logo} className='h-8 sm:h-12 w-auto' alt="logo" />
+        <div className="font-mono text-gray-500 text-sm sm:text-base">
+          {time.toLocaleTimeString('en-GB')} IST
+        </div>
       </div>
 
-      
-
-    <div className="flex items-center gap-6 text-sm">
+      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 text-sm">
         <div className="flex items-center gap-2">
           <Siren className="text-black" size={20} />
           <span className="text-black">Active Incidents:</span>
@@ -40,14 +38,12 @@ export default function Header({ resources, incidents, onNewIncidentClick }) {
       </div>
 
       <button
-            onClick={onNewIncidentClick}
-            className="flex items-center gap-2 bg-black text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-            <PlusCircle size={16} />
-            New Incident
-        </button>
-
-      
+        onClick={onNewIncidentClick}
+        className="flex items-center gap-2 bg-black text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors text-sm"
+      >
+        <PlusCircle size={16} />
+        New Incident
+      </button>
     </header>
   );
 }
